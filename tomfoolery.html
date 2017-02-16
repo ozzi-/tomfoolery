@@ -1,0 +1,148 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252"><link rel="stylesheet" type="text/css" href="tomfoolery_files/socialwidgets.css"></head><body><h1>Text Tomfoolery</h1>
+<table>
+	<tbody><tr>
+		<td><b>Input:</b></td>
+		<td><input onkeyup="doit()" id="in" placeholder="Start typing" autofocus="" type="text"></td>
+	</tr>
+	<tr>
+		<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
+		<td><input id="fullwidth" onchange="doit()" value="yes" type="checkbox"></td>
+	</tr>
+	<tr>
+		<td><b>90 Degrees:</b></td>
+		<td><input id="ninty" onchange="doit()" value="yes" type="checkbox"></td>
+	</tr>
+	<tr>
+		<td><b>Level:</b></td>
+		<td><input onkeyup="doit()" onchange="doit()" id="level" value="3" min="1" max="1000" type="number"></td>
+	</tr>
+	<tr>
+		<td><b>Space Multiplicator:</b></td>
+		<td><input onkeyup="doit()" onchange="doit()" id="spaces" value="1" min="1" max="1000" type="number"></td>
+	</tr>
+	<tr>
+		<td>Buildup:</td>
+		<td><input id="buildup" onchange="doit()" value="yes" type="checkbox"></td>
+	</tr>
+	<tr>
+		<td>Incremental:</td>
+		<td><input id="incremental" onchange="doit()" value="yes" type="checkbox"></td>
+	</tr>
+	<tr>
+		<td>Incremental Space Multiplicator:</td>
+		<td><input id="incremental_space" onchange="doit()" value="yes" type="checkbox"></td>
+	</tr>
+</tbody></table>
+<br><br>
+<textarea rows="30" cols="150" id="out">
+
+
+
+
+
+
+
+</textarea>
+<script>
+	function doit(){
+		var inv = document.getElementById("in").value;
+		var times = parseInt(document.getElementById("level").value);
+		times = times===NaN?0:times;
+		var spaces = document.getElementById("spaces").value;
+		var fullwidth = document.getElementById("fullwidth").checked;
+		var incremental = document.getElementById("incremental").checked;
+		var buildup = document.getElementById("buildup").checked;
+		var ninty = document.getElementById("ninty").checked;
+		var incremental_space = document.getElementById("incremental_space").checked;
+		times = buildup?inv.length:times;
+		times = (buildup && !incremental)?times-1:times;
+		var outv ="\r\n";
+		updateInputFields(buildup,ninty);
+		
+		if(ninty){
+			outv=addNinty(inv);
+		}else{
+			for (var o = 0; o < times; o++) {
+				outv+=addSpaces(buildup,inv,o,spaces,incremental,incremental_space);
+			}
+			for (var o = times; o >= 0; o--) {
+				outv+=addSpaces(buildup,inv,o,spaces,incremental,incremental_space);
+			}
+		}
+		outv=fullwidth?toFullWidth(outv):outv;
+		document.getElementById("out").value=outv;
+	}
+	
+	function addSpaces(buildup,inv,o,spaces,incremental,incremental_space){
+		return buildup?addSpacesBuildup(inv,o,spaces,incremental,incremental_space)
+					:addSpacesNormal(inv,o,spaces);
+	}
+	// TXT
+	// X
+	// T
+	function addNinty(inv){
+		var outv=inv+"\r\n";
+		for (var i = 1, len = inv.length; i < len; i++) {
+			outv+=inv[i]+"\r\n";
+		}
+		return outv;
+	}
+	// buildup
+	// b uilup
+	// b u ildup 
+	// ---------
+	// i
+	// i n 
+	// i n c 
+	function addSpacesBuildup(inv,o,spaces,incremental,incremental_space){
+		var outv="";
+		for (var i = 0, len = o; i < len; i++) {
+			outv+=inv[i]+" ".repeat(spaces*(incremental_space?i+1:1));
+		}
+		if(!incremental){
+			outv+=inv.substring(o);
+		}
+		return outv+"\r\n";
+	}
+	
+	// normal
+	// n o r m a l
+	// n  o  r  m  a  l
+	function addSpacesNormal(inv,o,spaces){
+		var outv="";
+		for (var i = 0, len = inv.length; i < len; i++) {
+			outv+=inv[i]+" ".repeat(o*spaces);
+		}
+		return outv+"\r\n";
+	}
+	
+	// convert string to fullwidth
+	function toFullWidth(inv){
+		var outv="";
+		for(i=0; i<inv.length; i++) {
+			if(inv.charCodeAt(i) === 10 || inv.charCodeAt(i) === 13){
+				outv+=inv.charAt(i);
+			}
+			if(inv.charCodeAt(i)  >= 33 && inv.charCodeAt(i) <= 270) {
+				outv += String.fromCharCode(inv.charCodeAt(i) + 65248);
+			} else if(inv.charCodeAt(i) == 32) {
+				outv += String.fromCharCode(12288);
+			}
+		}
+		return outv;
+	}
+	
+	// set disabled state on fields according to mode
+	function updateInputFields(buildup,ninty){
+		document.getElementById('incremental').disabled = !buildup;
+		document.getElementById('incremental_space').disabled = !buildup;
+		document.getElementById('level').disabled = buildup;
+		document.getElementById('level').disabled = ninty;
+		document.getElementById('incremental').disabled = ninty;
+		document.getElementById('incremental_space').disabled = ninty;
+		document.getElementById('buildup').disabled = ninty;
+		document.getElementById('spaces').disabled = ninty;
+	}
+</script>
+</body></html>
