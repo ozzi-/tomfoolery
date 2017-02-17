@@ -1,148 +1,365 @@
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=windows-1252"><link rel="stylesheet" type="text/css" href="tomfoolery_files/socialwidgets.css"></head><body><h1>Text Tomfoolery</h1>
-<table>
-	<tbody><tr>
-		<td><b>Input:</b></td>
-		<td><input onkeyup="doit()" id="in" placeholder="Start typing" autofocus="" type="text"></td>
-	</tr>
-	<tr>
-		<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
-		<td><input id="fullwidth" onchange="doit()" value="yes" type="checkbox"></td>
-	</tr>
-	<tr>
-		<td><b>90 Degrees:</b></td>
-		<td><input id="ninty" onchange="doit()" value="yes" type="checkbox"></td>
-	</tr>
-	<tr>
-		<td><b>Level:</b></td>
-		<td><input onkeyup="doit()" onchange="doit()" id="level" value="3" min="1" max="1000" type="number"></td>
-	</tr>
-	<tr>
-		<td><b>Space Multiplicator:</b></td>
-		<td><input onkeyup="doit()" onchange="doit()" id="spaces" value="1" min="1" max="1000" type="number"></td>
-	</tr>
-	<tr>
-		<td>Buildup:</td>
-		<td><input id="buildup" onchange="doit()" value="yes" type="checkbox"></td>
-	</tr>
-	<tr>
-		<td>Incremental:</td>
-		<td><input id="incremental" onchange="doit()" value="yes" type="checkbox"></td>
-	</tr>
-	<tr>
-		<td>Incremental Space Multiplicator:</td>
-		<td><input id="incremental_space" onchange="doit()" value="yes" type="checkbox"></td>
-	</tr>
-</tbody></table>
-<br><br>
-<textarea rows="30" cols="150" id="out">
+<html>
+	<head>
+		<title>Text Tomfoolery</title>
+	</head>
+	<body>
+		<h1>Text Tomfoolery</h1>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+		<table>
+			<tbody><tr>
+				<td><b>Input:</b></td>
+				<td><input onkeyup="doit()" id="in" placeholder="Start typing" autofocus="" type="text"></td>
+			</tr>
+			<tr>
+				<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
+				<td><input id="fullwidth" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>Mirror:</td>
+				<td><input id="mirror" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td><b>Bold:</b></td>
+				<td><input id="bold" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td><i>Italics:</i></td>
+				<td><input id="italics" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>90 Degrees:</td>
+				<td><input id="ninty" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>Level:</td>
+				<td><input onkeyup="doit()" onchange="doit()" id="level" value="3" min="1" max="1000" type="number"></td>
+			</tr>
+			<tr>
+				<td>Space Multiplicator:</td>
+				<td><input onkeyup="doit()" onchange="doit()" id="spaces" value="1" min="1" max="1000" type="number"></td>
+			</tr>
+			<tr>
+				<td>Buildup:</td>
+				<td><input id="buildup" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>Incremental:</td>
+				<td><input id="incremental" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>Incremental Space Multiplicator:</td>
+				<td><input id="incremental_space" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+		</tbody></table>
+		<br><br>
+		<textarea rows="30" cols="150" id="out"></textarea>
 
+		<script>
+			function doit(){
+				var inv = document.getElementById("in").value;
+				var times = parseInt(document.getElementById("level").value);
+				times = times===NaN?0:times;
+				var spaces = document.getElementById("spaces").value;
+				var c = getInputCheckBoxes();
+				times = c['buildup']?inv.length:times;
+				times = (c['buildup'] && !c['incremental'])?times-1:times;
+				var outv ="\r\n";
+								
+				updateInputFields(c['buildup'],c['ninty'],c['mirror'],c['fullwidth'],c['bold'],c['italics']);
+				inv=c['mirror']?toMirror(inv):inv;
+				
+				if(c['ninty']){
+					outv=addNinty(inv);
+				}else{
+					for (var o = 0; o < times; o++) {
+						outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
+					}
+					for (var o = times; o >= 0; o--) {
+						outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
+					}
+				}
+				
+				outv=c['fullwidth']&&!c['mirror']?toFullWidth(outv):outv;
+				
+				outv=manipulateFont(outv,c['bold'],c['italics']);
+				outv = $('<div/>').html(outv).text(); // resolve html entities
 
+				document.getElementById("out").value=outv;
 
-
-
-
-
-</textarea>
-<script>
-	function doit(){
-		var inv = document.getElementById("in").value;
-		var times = parseInt(document.getElementById("level").value);
-		times = times===NaN?0:times;
-		var spaces = document.getElementById("spaces").value;
-		var fullwidth = document.getElementById("fullwidth").checked;
-		var incremental = document.getElementById("incremental").checked;
-		var buildup = document.getElementById("buildup").checked;
-		var ninty = document.getElementById("ninty").checked;
-		var incremental_space = document.getElementById("incremental_space").checked;
-		times = buildup?inv.length:times;
-		times = (buildup && !incremental)?times-1:times;
-		var outv ="\r\n";
-		updateInputFields(buildup,ninty);
-		
-		if(ninty){
-			outv=addNinty(inv);
-		}else{
-			for (var o = 0; o < times; o++) {
-				outv+=addSpaces(buildup,inv,o,spaces,incremental,incremental_space);
 			}
-			for (var o = times; o >= 0; o--) {
-				outv+=addSpaces(buildup,inv,o,spaces,incremental,incremental_space);
+			
+			function addSpaces(buildup,inv,o,spaces,incremental,incremental_space){
+				return buildup?addSpacesBuildup(inv,o,spaces,incremental,incremental_space)
+							:addSpacesNormal(inv,o,spaces);
 			}
-		}
-		outv=fullwidth?toFullWidth(outv):outv;
-		document.getElementById("out").value=outv;
-	}
-	
-	function addSpaces(buildup,inv,o,spaces,incremental,incremental_space){
-		return buildup?addSpacesBuildup(inv,o,spaces,incremental,incremental_space)
-					:addSpacesNormal(inv,o,spaces);
-	}
-	// TXT
-	// X
-	// T
-	function addNinty(inv){
-		var outv=inv+"\r\n";
-		for (var i = 1, len = inv.length; i < len; i++) {
-			outv+=inv[i]+"\r\n";
-		}
-		return outv;
-	}
-	// buildup
-	// b uilup
-	// b u ildup 
-	// ---------
-	// i
-	// i n 
-	// i n c 
-	function addSpacesBuildup(inv,o,spaces,incremental,incremental_space){
-		var outv="";
-		for (var i = 0, len = o; i < len; i++) {
-			outv+=inv[i]+" ".repeat(spaces*(incremental_space?i+1:1));
-		}
-		if(!incremental){
-			outv+=inv.substring(o);
-		}
-		return outv+"\r\n";
-	}
-	
-	// normal
-	// n o r m a l
-	// n  o  r  m  a  l
-	function addSpacesNormal(inv,o,spaces){
-		var outv="";
-		for (var i = 0, len = inv.length; i < len; i++) {
-			outv+=inv[i]+" ".repeat(o*spaces);
-		}
-		return outv+"\r\n";
-	}
-	
-	// convert string to fullwidth
-	function toFullWidth(inv){
-		var outv="";
-		for(i=0; i<inv.length; i++) {
-			if(inv.charCodeAt(i) === 10 || inv.charCodeAt(i) === 13){
-				outv+=inv.charAt(i);
+			
+
+			// TXT
+			// X
+			// T
+			function addNinty(inv){
+				var outv=inv+"\r\n";
+				for (var i = 1, len = inv.length; i < len; i++) {
+					outv+=inv[i]+"\r\n";
+				}
+				return outv;
 			}
-			if(inv.charCodeAt(i)  >= 33 && inv.charCodeAt(i) <= 270) {
-				outv += String.fromCharCode(inv.charCodeAt(i) + 65248);
-			} else if(inv.charCodeAt(i) == 32) {
-				outv += String.fromCharCode(12288);
+			
+			// buildup
+			// b uilup
+			// b u ildup 
+			// ---------
+			// i
+			// i n 
+			// i n c 
+			function addSpacesBuildup(inv,o,spaces,incremental,incremental_space){
+				var outv="";
+				for (var i = 0, len = o; i < len; i++) {
+					outv+=inv[i]+" ".repeat(spaces*(incremental_space?i+1:1));
+				}
+				if(!incremental){
+					outv+=inv.substring(o);
+				}
+				return outv+"\r\n";
 			}
-		}
-		return outv;
-	}
-	
-	// set disabled state on fields according to mode
-	function updateInputFields(buildup,ninty){
-		document.getElementById('incremental').disabled = !buildup;
-		document.getElementById('incremental_space').disabled = !buildup;
-		document.getElementById('level').disabled = buildup;
-		document.getElementById('level').disabled = ninty;
-		document.getElementById('incremental').disabled = ninty;
-		document.getElementById('incremental_space').disabled = ninty;
-		document.getElementById('buildup').disabled = ninty;
-		document.getElementById('spaces').disabled = ninty;
-	}
-</script>
-</body></html>
+			
+			// normal
+			// n o r m a l
+			// n  o  r  m  a  l
+			function addSpacesNormal(inv,o,spaces){
+				var outv="";
+				for (var i = 0, len = inv.length; i < len; i++) {
+					outv+=inv[i]+" ".repeat(o*spaces);
+				}
+				return outv+"\r\n";
+			}
+			
+			// ?o??i?
+			function toMirror(inv){
+				inv=inv.toLowerCase();
+				var lastChar = inv.length - 1;
+				var outv = new Array(inv.length);
+				for (var i = lastChar; i >= 0; --i) {
+					var curChar = inv.charAt(i);
+					var flipChar = flipTable[curChar];
+					outv[lastChar - i] = flipChar ? flipChar : curChar;
+				}
+				return outv.join('');
+			}
+			
+			function manipulateFont(inv,bold,italics){
+				if(!bold&&!italics){
+					return inv;
+				}
+				var outv = new Array(inv.length);
+				for (var i = 0; i < inv.length; i++) {
+					var curChar = inv.charAt(i);
+					var flipChar = bold?boldTable[curChar]:italicsTable[curChar];
+					outv[i] = flipChar ? flipChar : curChar;
+				}
+				return outv.join('');
+			}
+				
+			// convert string to fullwidth
+			function toFullWidth(inv){
+				var outv="";
+				for(i=0; i<inv.length; i++) {
+					if(inv.charCodeAt(i) === 10 || inv.charCodeAt(i) === 13){
+						outv+=inv.charAt(i);
+					}
+					if(inv.charCodeAt(i)  >= 33 && inv.charCodeAt(i) <= 270) {
+						outv += String.fromCharCode(inv.charCodeAt(i) + 65248);
+					} else if(inv.charCodeAt(i) == 32) {
+						outv += String.fromCharCode(12288);
+					}
+				}
+				return outv;
+			}
+			
+			// populate c with checkbox values
+			function getInputCheckBoxes(){
+				var c=[];
+				c['fullwidth'] 			= document.getElementById("fullwidth").checked;
+				c['incremental']		= document.getElementById("incremental").checked;
+				c['buildup']			= document.getElementById("buildup").checked;
+				c['ninty'] 			= document.getElementById("ninty").checked;
+				c['incremental_space']		= document.getElementById("incremental_space").checked;
+				c['mirror'] 			= document.getElementById("mirror").checked;
+				c['bold'] 			= document.getElementById("bold").checked;
+				c['italics'] 			= document.getElementById("italics").checked;
+				return c;
+			}
+			
+			// set disabled state on fields according to mode
+			function updateInputFields(buildup,ninty,mirror,fullwidth,bold,italics){
+				document.getElementById('incremental').disabled = !buildup;
+				document.getElementById('incremental_space').disabled = !buildup;
+				document.getElementById('level').disabled = buildup;
+				document.getElementById('level').disabled = ninty;
+				document.getElementById('incremental').disabled = ninty;
+				document.getElementById('incremental_space').disabled = ninty;
+				document.getElementById('buildup').disabled = ninty;
+				document.getElementById('spaces').disabled = ninty;
+				document.getElementById('fullwidth').disabled = mirror;
+				document.getElementById('bold').disabled = fullwidth;
+				document.getElementById('italics').disabled = fullwidth;
+				document.getElementById('italics').disabled = bold;
+				document.getElementById('bold').disabled = italics;
+			}
+			
+			// lookup tables
+			var flipTable = {
+				a : '\u0250',
+				b : 'q',
+				c : '\u0254', 
+				d : 'p',
+				e : '\u01DD',
+				f : '\u025F', 
+				g : '\u0183',
+				h : '\u0265',
+				i : '\u0131', 
+				j : '\u027E',
+				k : '\u029E',
+				m : '\u026F',
+				n : 'u',
+				r : '\u0279',
+				t : '\u0287',
+				v : '\u028C',
+				w : '\u028D',
+				y : '\u028E',
+				'.' : '\u02D9',
+				'[' : ']',
+				'(' : ')',
+				'{' : '}',
+				'?' : '\u00BF',
+				'!' : '\u00A1',
+				"\'" : ',',
+				'<' : '>',
+				'_' : '\u203E',
+				';' : '\u061B'
+				//'\r' : '\n' 
+			}
+			
+			var boldTable = {
+				"A" : "&#x1D400",
+				"B" : "&#x1D401",
+				"C" : "&#x1D402",
+				"D" : "&#x1D403",
+				"E" : "&#x1D404",
+				"F" : "&#x1D405",
+				"G" : "&#x1D406",
+				"H" : "&#x1D407",
+				"I" : "&#x1D408",
+				"J" : "&#x1D409",
+				"K" : "&#x1D40A",
+				"L" : "&#x1D40B",
+				"M" : "&#x1D40C",
+				"N" : "&#x1D40D",
+				"O" : "&#x1D40E",
+				"P" : "&#x1D40F",
+				"Q" : "&#x1D410",
+				"R" : "&#x1D411",
+				"S" : "&#x1D412",
+				"T" : "&#x1D413",
+				"U" : "&#x1D414",
+				"V" : "&#x1D415",
+				"W" : "&#x1D416",
+				"X" : "&#x1D417",
+				"Y" : "&#x1D418",
+				"Z" : "&#x1D419",
+				"a" : "&#x1D41A",
+				"b" : "&#x1D41B",
+				"c" : "&#x1D41C",
+				"d" : "&#x1D41D",
+				"e" : "&#x1D41E",
+				"f" : "&#x1D41F",
+				"g" : "&#x1D420",
+				"h" : "&#x1D421",
+				"i" : "&#x1D422",
+				"j" : "&#x1D423",
+				"k" : "&#x1D424",
+				"l" : "&#x1D425",
+				"m" : "&#x1D426",
+				"n" : "&#x1D427",
+				"o" : "&#x1D428",
+				"p" : "&#x1D429",
+				"q" : "&#x1D42A",
+				"r" : "&#x1D42B",
+				"s" : "&#x1D42C",
+				"t" : "&#x1D42D",
+				"u" : "&#x1D42E",
+				"v" : "&#x1D42F",
+				"w" : "&#x1D430",
+				"x" : "&#x1D431",
+				"y" : "&#x1D432",
+				"z" : "&#x1D433",
+				"0" : "&#x1D7CE",
+				"1" : "&#x1D7CF",
+				"2" : "&#x1D7D0",
+				"3" : "&#x1D7D1",
+				"4" : "&#x1D7D2",
+				"5" : "&#x1D7D3",
+				"6" : "&#x1D7D4",
+				"7" : "&#x1D7D5",
+				"8" : "&#x1D7D6",
+				"9" : "&#x1D7D7"
+			}
+
+
+			var italicsTable = {
+				"A" : "&#x1D434",
+				"B" : "&#x1D435",
+				"C" : "&#x1D436",
+				"D" : "&#x1D437",
+				"E" : "&#x1D438",
+				"F" : "&#x1D439",
+				"G" : "&#x1D43A",
+				"H" : "&#x1D43B",
+				"I" : "&#x1D43C",
+				"J" : "&#x1D43D",
+				"K" : "&#x1D43E",
+				"L" : "&#x1D43F",
+				"M" : "&#x1D440",
+				"N" : "&#x1D441",
+				"O" : "&#x1D442",
+				"P" : "&#x1D443",
+				"Q" : "&#x1D444",
+				"R" : "&#x1D445",
+				"S" : "&#x1D446",
+				"T" : "&#x1D447",
+				"U" : "&#x1D448",
+				"V" : "&#x1D449",
+				"W" : "&#x1D44A",
+				"X" : "&#x1D44B",
+				"Y" : "&#x1D44C",
+				"Z" : "&#x1D44D",
+				"a" : "&#x1D44E",
+				"b" : "&#x1D44F",
+				"c" : "&#x1D450",
+				"d" : "&#x1D451",
+				"e" : "&#x1D452",
+				"f" : "&#x1D453",
+				"g" : "&#x1D454",
+				"h" : "&#x1D455",
+				"i" : "&#x1D456",
+				"j" : "&#x1D457",
+				"k" : "&#x1D458",
+				"l" : "&#x1D459",
+				"m" : "&#x1D45A",
+				"n" : "&#x1D45B",
+				"o" : "&#x1D45C",
+				"p" : "&#x1D45D",
+				"q" : "&#x1D45E",
+				"r" : "&#x1D45F",
+				"s" : "&#x1D460",
+				"t" : "&#x1D461",
+				"u" : "&#x1D462",
+				"v" : "&#x1D463",
+				"w" : "&#x1D464",
+				"x" : "&#x1D465",
+				"y" : "&#x1D466",
+				"z" : "&#x1D467"
+			}
+		</script>
+	</body>
+</html>
