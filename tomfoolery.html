@@ -5,30 +5,62 @@
 	<body>
 		<h1>Text Tomfoolery</h1>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 		<table>
 			<tbody><tr>
 				<td><b>Input:</b></td>
 				<td><input onkeyup="doit()" id="in" placeholder="Start typing" autofocus="" type="text"></td>
 			</tr>
 			<tr>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td>Normal:</td>
+				<td><input name="mode" id="normal" value="normal" onchange="doit()" value="yes" type="radio" checked></td>
+			</tr>			
+			<tr>
 				<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
-				<td><input id="fullwidth" onchange="doit()" value="yes" type="checkbox"></td>
+				<td><input name="mode" id="fullwidth" value="fullwidth" onchange="doit()" value="yes" type="radio"></td>
 			</tr>
 			<tr>
 				<td>Mirror:</td>
-				<td><input id="mirror" onchange="doit()" value="yes" type="checkbox"></td>
+				<td><input name="mode" value="mirror" id="mirror" onchange="doit()" value="yes" type="radio"></td>
 			</tr>
 			<tr>
 				<td><b>Bold:</b></td>
-				<td><input id="bold" onchange="doit()" value="yes" type="checkbox"></td>
+				<td><input name="mode" value="bold" id="bold" onchange="doit()" value="yes" type="radio"></td>
 			</tr>
 			<tr>
 				<td><i>Italics:</i></td>
-				<td><input id="italics" onchange="doit()" value="yes" type="checkbox"></td>
+				<td><input name="mode" value="italics" id="italics" onchange="doit()" value="yes" type="radio"></td>
 			</tr>
+			<tr>
+				<td>&#x1D509;&#x1D51E;&#x1D528;&#x1D531;&#x1D532;&#x1D52F;:</td>
+				<td><input name="mode" value="faktur" id="faktur" onchange="doit()" value="yes" type="radio"></td>
+			</tr>
+			<tr>
+				<td>&#x1D53B;&#x1D560;&#x1D566;&#x1D553;&#x1D55D;&#x1D556;:</td>
+				<td><input name="mode" value="double" id="double" onchange="doit()" value="yes" type="radio"></td>
+			</tr>			
+			<tr>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td><b>Effects</b></td>
+			</tr>						
 			<tr>
 				<td>90 Degrees:</td>
 				<td><input id="ninty" onchange="doit()" value="yes" type="checkbox"></td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td><b>Repeat</b></td>
+			</tr>
+			<tr>
+				<td>On?</td>
+				<td><input id="repeat" onchange="doit()" value="yes" type="checkbox"></td>
 			</tr>
 			<tr>
 				<td>Level:</td>
@@ -52,9 +84,26 @@
 			</tr>
 		</tbody></table>
 		<br><br>
-		<textarea rows="30" cols="150" id="out"></textarea>
+		<br><b>Result:</b><br>
+		<span id="out"></span>
+		<!-- <textarea rows="30" cols="150" id="out"></textarea> -->
+		<br><hr>	
+		<button class="clipboardbtn" value="Copy" data-clipboard-target="#out">
+			Cut to clipboard
+		</button>
+
 
 		<script>
+
+			var clipboard = new ClipboardJS('.clipboardbtn', {
+				container: document.getElementById('out')
+			});
+
+			clipboard.on('success', function(e) {
+				e.clearSelection();
+			});
+
+
 			function doit(){
 				var inv = document.getElementById("in").value;
 				var times = parseInt(document.getElementById("level").value);
@@ -71,20 +120,24 @@
 				if(c['ninty']){
 					outv=addNinty(inv);
 				}else{
-					for (var o = 0; o < times; o++) {
-						outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
-					}
-					for (var o = times; o >= 0; o--) {
-						outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
+					if(c['repeat']){
+						for (var o = 0; o < times; o++) {
+							outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
+						}
+						for (var o = times; o >= 0; o--) {
+							outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
+						}						
+					}else{
+						outv = inv;
 					}
 				}
 				
 				outv=c['fullwidth']&&!c['mirror']?toFullWidth(outv):outv;
 				
-				outv=manipulateFont(outv,c['bold'],c['italics']);
+				outv=manipulateFont(outv,c);
 				outv = $('<div/>').html(outv).text(); // resolve html entities
 
-				document.getElementById("out").value=outv;
+				document.getElementById("out").innerHTML="<pre>"+outv+"</pre>";
 
 			}
 			
@@ -134,7 +187,7 @@
 				return outv+"\r\n";
 			}
 			
-			// ?o??i?
+			// turned by 180 degrees 
 			function toMirror(inv){
 				inv=inv.toLowerCase();
 				var lastChar = inv.length - 1;
@@ -147,14 +200,21 @@
 				return outv.join('');
 			}
 			
-			function manipulateFont(inv,bold,italics){
-				if(!bold&&!italics){
+			function manipulateFont(inv,c){
+				var bold = c['bold'];
+				var italics = c['italics'];
+				var faktur = c['faktur'];
+				var double = c['double'];
+
+				if(!bold&&!italics&&!faktur&&!double){
 					return inv;
 				}
 				var outv = new Array(inv.length);
 				for (var i = 0; i < inv.length; i++) {
 					var curChar = inv.charAt(i);
 					var flipChar = bold?boldTable[curChar]:italicsTable[curChar];
+					flipChar = faktur?fakturTable[curChar]:flipChar;
+					flipChar = double?doubleTable[curChar]:flipChar;
 					outv[i] = flipChar ? flipChar : curChar;
 				}
 				return outv.join('');
@@ -179,32 +239,34 @@
 			// populate c with checkbox values
 			function getInputCheckBoxes(){
 				var c=[];
+				c['repeat'] 			= document.getElementById("repeat").checked;
 				c['fullwidth'] 			= document.getElementById("fullwidth").checked;
 				c['incremental']		= document.getElementById("incremental").checked;
 				c['buildup']			= document.getElementById("buildup").checked;
-				c['ninty'] 			= document.getElementById("ninty").checked;
-				c['incremental_space']		= document.getElementById("incremental_space").checked;
+				c['ninty'] 				= document.getElementById("ninty").checked;
+				c['incremental_space']	= document.getElementById("incremental_space").checked;
 				c['mirror'] 			= document.getElementById("mirror").checked;
-				c['bold'] 			= document.getElementById("bold").checked;
+				c['bold'] 				= document.getElementById("bold").checked;
 				c['italics'] 			= document.getElementById("italics").checked;
+				c['faktur'] 			= document.getElementById("faktur").checked;
+				c['double'] 			= document.getElementById("double").checked;				
 				return c;
 			}
 			
 			// set disabled state on fields according to mode
 			function updateInputFields(buildup,ninty,mirror,fullwidth,bold,italics){
+
 				document.getElementById('incremental').disabled = !buildup;
 				document.getElementById('incremental_space').disabled = !buildup;
 				document.getElementById('level').disabled = buildup;
 				document.getElementById('level').disabled = ninty;
 				document.getElementById('incremental').disabled = ninty;
 				document.getElementById('incremental_space').disabled = ninty;
+				document.getElementById('repeat').disabled = ninty;
 				document.getElementById('buildup').disabled = ninty;
 				document.getElementById('spaces').disabled = ninty;
-				document.getElementById('fullwidth').disabled = mirror;
-				document.getElementById('bold').disabled = fullwidth;
-				document.getElementById('italics').disabled = fullwidth;
-				document.getElementById('italics').disabled = bold;
-				document.getElementById('bold').disabled = italics;
+
+
 			}
 			
 			// lookup tables
@@ -238,6 +300,192 @@
 				'_' : '\u203E',
 				';' : '\u061B'
 				//'\r' : '\n' 
+			}
+
+
+			var scriptTable = {
+				"A" : "&#x1D49C",
+				"B" : "&#x212C",
+				"C" : "&#x1D49E",
+				"D" : "&#x1D49F",
+				"E" : "&#x2130",
+				"F" : "&#x2131",
+				"G" : "&#x1D4A2",
+				"H" : "&#x210B",
+				"I" : "&#x2110",
+				"J" : "&#x1D541",
+				"K" : "&#x1D542",
+				"L" : "&#x1D543",
+				"M" : "&#x1D544",
+				"N" : "&#x2115",
+				"O" : "&#x1D546",
+				"P" : "&#x2119",
+				"Q" : "&#x211A",
+				"R" : "&#x211D",
+				"S" : "&#x1D54A",
+				"T" : "&#x1D54B",
+				"U" : "&#x1D54C",
+				"V" : "&#x1D54D",
+				"W" : "&#x1D54E",
+				"X" : "&#x1D54F",
+				"Y" : "&#x1D550",
+				"Z" : "&#x2124",
+				"a" : "&#x1D552",
+				"b" : "&#x1D553",
+				"c" : "&#x1D554",
+				"d" : "&#x1D555",
+				"e" : "&#x1D556",
+				"f" : "&#x1D557",
+				"g" : "&#x1D558",
+				"h" : "&#x1D559",
+				"i" : "&#x1D55A",
+				"j" : "&#x1D55B",
+				"k" : "&#x1D55C",
+				"l" : "&#x1D55D",
+				"m" : "&#x1D55E",
+				"n" : "&#x1D55F",
+				"o" : "&#x1D560",
+				"p" : "&#x1D561",
+				"q" : "&#x1D562",
+				"r" : "&#x1D563",
+				"s" : "&#x1D564",
+				"t" : "&#x1D565",
+				"u" : "&#x1D566",
+				"v" : "&#x1D567",
+				"w" : "&#x1D568",
+				"x" : "&#x1D569",
+				"y" : "&#x1D56A",
+				"z" : "&#x1D56B"
+			}
+
+			var doubleTable = {
+				"A" : "&#x1D538",
+				"B" : "&#x1D539",
+				"C" : "&#x2102",
+				"D" : "&#x1D53B",
+				"E" : "&#x1D53C",
+				"F" : "&#x1D53D",
+				"G" : "&#x1D53E",
+				"H" : "&#x210D",
+				"I" : "&#x1D540",
+				"J" : "&#x1D541",
+				"K" : "&#x1D542",
+				"L" : "&#x1D543",
+				"M" : "&#x1D544",
+				"N" : "&#x2115",
+				"O" : "&#x1D546",
+				"P" : "&#x2119",
+				"Q" : "&#x211A",
+				"R" : "&#x211D",
+				"S" : "&#x1D54A",
+				"T" : "&#x1D54B",
+				"U" : "&#x1D54C",
+				"V" : "&#x1D54D",
+				"W" : "&#x1D54E",
+				"X" : "&#x1D54F",
+				"Y" : "&#x1D550",
+				"Z" : "&#x2124",
+				"a" : "&#x1D552",
+				"b" : "&#x1D553",
+				"c" : "&#x1D554",
+				"d" : "&#x1D555",
+				"e" : "&#x1D556",
+				"f" : "&#x1D557",
+				"g" : "&#x1D558",
+				"h" : "&#x1D559",
+				"i" : "&#x1D55A",
+				"j" : "&#x1D55B",
+				"k" : "&#x1D55C",
+				"l" : "&#x1D55D",
+				"m" : "&#x1D55E",
+				"n" : "&#x1D55F",
+				"o" : "&#x1D560",
+				"p" : "&#x1D561",
+				"q" : "&#x1D562",
+				"r" : "&#x1D563",
+				"s" : "&#x1D564",
+				"t" : "&#x1D565",
+				"u" : "&#x1D566",
+				"v" : "&#x1D567",
+				"w" : "&#x1D568",
+				"x" : "&#x1D569",
+				"y" : "&#x1D56A",
+				"z" : "&#x1D56B",
+				"0" : "&#x1D7CE",
+				"1" : "&#x1D7CF",
+				"2" : "&#x1D7D0",
+				"3" : "&#x1D7D1",
+				"4" : "&#x1D7D2",
+				"5" : "&#x1D7D3",
+				"6" : "&#x1D7D4",
+				"7" : "&#x1D7D5",
+				"8" : "&#x1D7D6",
+				"9" : "&#x1D7D7"
+			}
+
+			var fakturTable = {
+				"A" : "&#x1D504",
+				"B" : "&#x1D505",
+				"C" : "&#x212D",
+				"D" : "&#x1D507",
+				"E" : "&#x1D508",
+				"F" : "&#x1D509",
+				"G" : "&#x1D50A",
+				"H" : "&#x210C",
+				"I" : "&#x2111",
+				"J" : "&#x1D50D",
+				"K" : "&#x1D50E",
+				"L" : "&#x1D50F",
+				"M" : "&#x1D510",
+				"N" : "&#x1D511",
+				"O" : "&#x1D512",
+				"P" : "&#x1D513",
+				"Q" : "&#x1D514",
+				"R" : "&#x211C",
+				"S" : "&#x1D516",
+				"T" : "&#x1D517",
+				"U" : "&#x1D518",
+				"V" : "&#x1D519",
+				"W" : "&#x1D520",
+				"X" : "&#x1D521",
+				"Y" : "&#x1D522",
+				"Z" : "&#x2128",
+				"a" : "&#x1D51E",
+				"b" : "&#x1D51F",
+				"c" : "&#x1D520",
+				"d" : "&#x1D521",
+				"e" : "&#x1D522",
+				"f" : "&#x1D523",
+				"g" : "&#x1D524",
+				"h" : "&#x1D525",
+				"i" : "&#x1D526",
+				"j" : "&#x1D527",
+				"k" : "&#x1D528",
+				"l" : "&#x1D529",
+				"m" : "&#x1D52A",
+				"n" : "&#x1D52B",
+				"o" : "&#x1D52C",
+				"p" : "&#x1D52D",
+				"q" : "&#x1D52E",
+				"r" : "&#x1D52F",
+				"s" : "&#x1D530",
+				"t" : "&#x1D531",
+				"u" : "&#x1D532",
+				"v" : "&#x1D533",
+				"w" : "&#x1D534",
+				"x" : "&#x1D535",
+				"y" : "&#x1D536",
+				"z" : "&#x1D537",
+				"0" : "&#x1D7CE",
+				"1" : "&#x1D7CF",
+				"2" : "&#x1D7D0",
+				"3" : "&#x1D7D1",
+				"4" : "&#x1D7D2",
+				"5" : "&#x1D7D3",
+				"6" : "&#x1D7D4",
+				"7" : "&#x1D7D5",
+				"8" : "&#x1D7D6",
+				"9" : "&#x1D7D7"
 			}
 			
 			var boldTable = {
