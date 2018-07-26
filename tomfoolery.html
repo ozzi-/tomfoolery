@@ -1,3 +1,4 @@
+
 <html>
 	<head>
 		<title>Text Tomfoolery</title>
@@ -17,7 +18,11 @@
 			<tr>
 				<td>Normal:</td>
 				<td><input name="mode" id="normal" value="normal" onchange="doit()" value="yes" type="radio" checked></td>
-			</tr>			
+			</tr>
+      <tr>
+				<td>Zalgo:</td>
+				<td><input name="mode" id="zalgo" value="zalgo" onchange="doit()" value="yes" type="radio"></td>
+			</tr>
 			<tr>
 				<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
 				<td><input name="mode" id="fullwidth" value="fullwidth" onchange="doit()" value="yes" type="radio"></td>
@@ -41,13 +46,13 @@
 			<tr>
 				<td>&#x1D53B;&#x1D560;&#x1D566;&#x1D553;&#x1D55D;&#x1D556;:</td>
 				<td><input name="mode" value="double" id="double" onchange="doit()" value="yes" type="radio"></td>
-			</tr>			
+			</tr>
 			<tr>
 				<td>&nbsp;</td>
 			</tr>
 			<tr>
 				<td><b>Effects</b></td>
-			</tr>						
+			</tr>
 			<tr>
 				<td>90 Degrees:</td>
 				<td><input id="ninty" onchange="doit()" value="yes" type="checkbox"></td>
@@ -87,7 +92,7 @@
 		<br><b>Result:</b><br>
 		<span id="out"></span>
 		<!-- <textarea rows="30" cols="150" id="out"></textarea> -->
-		<br><hr>	
+		<br><hr>
 		<button class="clipboardbtn" value="Copy" data-clipboard-target="#out">
 			Cut to clipboard
 		</button>
@@ -113,10 +118,10 @@
 				times = c['buildup']?inv.length:times;
 				times = (c['buildup'] && !c['incremental'])?times-1:times;
 				var outv ="\r\n";
-								
+
 				updateInputFields(c['buildup'],c['ninty'],c['mirror'],c['fullwidth'],c['bold'],c['italics']);
 				inv=c['mirror']?toMirror(inv):inv;
-				
+
 				if(c['ninty']){
 					outv=addNinty(inv);
 				}else{
@@ -126,26 +131,26 @@
 						}
 						for (var o = times; o >= 0; o--) {
 							outv+=addSpaces(c['buildup'],inv,o,spaces,c['incremental'],c['incremental_space']);
-						}						
+						}
 					}else{
 						outv = inv;
 					}
 				}
-				
+
 				outv=c['fullwidth']&&!c['mirror']?toFullWidth(outv):outv;
-				
+
 				outv=manipulateFont(outv,c);
 				outv = $('<div/>').html(outv).text(); // resolve html entities
 
 				document.getElementById("out").innerHTML="<pre>"+outv+"</pre>";
 
 			}
-			
+
 			function addSpaces(buildup,inv,o,spaces,incremental,incremental_space){
 				return buildup?addSpacesBuildup(inv,o,spaces,incremental,incremental_space)
 							:addSpacesNormal(inv,o,spaces);
 			}
-			
+
 
 			// TXT
 			// X
@@ -157,14 +162,14 @@
 				}
 				return outv;
 			}
-			
+
 			// buildup
 			// b uilup
-			// b u ildup 
+			// b u ildup
 			// ---------
 			// i
-			// i n 
-			// i n c 
+			// i n
+			// i n c
 			function addSpacesBuildup(inv,o,spaces,incremental,incremental_space){
 				var outv="";
 				for (var i = 0, len = o; i < len; i++) {
@@ -175,7 +180,7 @@
 				}
 				return outv+"\r\n";
 			}
-			
+
 			// normal
 			// n o r m a l
 			// n  o  r  m  a  l
@@ -186,8 +191,8 @@
 				}
 				return outv+"\r\n";
 			}
-			
-			// turned by 180 degrees 
+
+			// turned by 180 degrees
 			function toMirror(inv){
 				inv=inv.toLowerCase();
 				var lastChar = inv.length - 1;
@@ -199,14 +204,15 @@
 				}
 				return outv.join('');
 			}
-			
+
 			function manipulateFont(inv,c){
 				var bold = c['bold'];
 				var italics = c['italics'];
 				var faktur = c['faktur'];
 				var double = c['double'];
+       			var zalgo = c['zalgo'];
 
-				if(!bold&&!italics&&!faktur&&!double){
+				if(!bold&&!italics&&!faktur&&!double&&!zalgo){
 					return inv;
 				}
 				var outv = new Array(inv.length);
@@ -215,11 +221,29 @@
 					var flipChar = bold?boldTable[curChar]:italicsTable[curChar];
 					flipChar = faktur?fakturTable[curChar]:flipChar;
 					flipChar = double?doubleTable[curChar]:flipChar;
+          			flipChar = zalgo?zalgoR(curChar):flipChar;
 					outv[i] = flipChar ? flipChar : curChar;
 				}
 				return outv.join('');
 			}
-				
+
+
+		     function zalgoR(c){
+		       var zalgoChars = [834, 1425, 1427, 1430, 1434, 1435, 1442, 1443, 1444, 1445, 1446, 1447, 1450, 1453, 1557, 1623, 1626, 1628, 1629];
+		       if(c==" "){
+		         return c;
+		       }
+		       var countZalgoChars = Math.floor(Math.random() * 3) + 1  ;
+		       var countRepeat = Math.floor(Math.random() * 4) + 1  ;
+		       var zalgoChar = zalgoChars[Math.floor(Math.random()*zalgoChars.length)];
+
+		       for (i = 0; i < countZalgoChars; i++) {
+		         c=c+String.fromCharCode(zalgoChar).repeat(countRepeat);
+		       }
+		       return c;
+		     }
+
+
 			// convert string to fullwidth
 			function toFullWidth(inv){
 				var outv="";
@@ -235,7 +259,7 @@
 				}
 				return outv;
 			}
-			
+
 			// populate c with checkbox values
 			function getInputCheckBoxes(){
 				var c=[];
@@ -249,10 +273,11 @@
 				c['bold'] 				= document.getElementById("bold").checked;
 				c['italics'] 			= document.getElementById("italics").checked;
 				c['faktur'] 			= document.getElementById("faktur").checked;
-				c['double'] 			= document.getElementById("double").checked;				
+				c['double'] 			= document.getElementById("double").checked;
+        		c['zalgo'] 				= document.getElementById("zalgo").checked;
 				return c;
 			}
-			
+
 			// set disabled state on fields according to mode
 			function updateInputFields(buildup,ninty,mirror,fullwidth,bold,italics){
 
@@ -268,18 +293,18 @@
 
 
 			}
-			
+
 			// lookup tables
 			var flipTable = {
 				a : '\u0250',
 				b : 'q',
-				c : '\u0254', 
+				c : '\u0254',
 				d : 'p',
 				e : '\u01DD',
-				f : '\u025F', 
+				f : '\u025F',
 				g : '\u0183',
 				h : '\u0265',
-				i : '\u0131', 
+				i : '\u0131',
 				j : '\u027E',
 				k : '\u029E',
 				m : '\u026F',
@@ -299,7 +324,7 @@
 				'<' : '>',
 				'_' : '\u203E',
 				';' : '\u061B'
-				//'\r' : '\n' 
+				//'\r' : '\n'
 			}
 
 
@@ -422,7 +447,7 @@
 				"8" : "&#x1D7E0",
 				"9" : "&#x1D7E1"
 			}
-			
+
 			var fakturTable = {
 				"A" : "&#x1D504",
 				"B" : "&#x1D505",
@@ -487,7 +512,7 @@
 				"8" : "&#x1D7D6",
 				"9" : "&#x1D7D7"
 			}
-			
+
 			var boldTable = {
 				"A" : "&#x1D400",
 				"B" : "&#x1D401",
