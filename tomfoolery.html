@@ -19,9 +19,17 @@
 				<td>Normal:</td>
 				<td><input name="mode" id="normal" value="normal" onchange="doit()" value="yes" type="radio" checked></td>
 			</tr>
-      <tr>
+      		<tr>
 				<td>Zalgo:</td>
 				<td><input name="mode" id="zalgo" value="zalgo" onchange="doit()" value="yes" type="radio"></td>
+			</tr>
+			<tr>
+				<td>Ⓑⓤⓑⓑⓛⓔ Ⓣⓔⓧⓣ:</td>
+				<td><input name="mode" id="bubble" value="bubble" onchange="doit()" value="yes" type="radio"></td>
+			</tr>
+			<tr>
+				<td>🅑🅤🅑🅑🅛🅔 🅣🅔🅧🅣:</td>
+				<td><input name="mode" id="bubbleinv" value="bubbleinv" onchange="doit()" value="yes" type="radio"></td>
 			</tr>
 			<tr>
 				<td>&#65279;&#65318;&#65365;&#65356;&#65356;&#65367;&#65353;&#65348;&#65364;&#65352;:</td>
@@ -211,10 +219,14 @@
 				var faktur = c['faktur'];
 				var double = c['double'];
        			var zalgo = c['zalgo'];
+       			var bubble = c['bubble'];
+       			var bubbleinv = c['bubbleinv'];
 
-				if(!bold&&!italics&&!faktur&&!double&&!zalgo){
+
+				if(!bold&&!italics&&!faktur&&!double&&!zalgo&&!bubble&&!bubbleinv){
 					return inv;
 				}
+
 				var outv = new Array(inv.length);
 				for (var i = 0; i < inv.length; i++) {
 					var curChar = inv.charAt(i);
@@ -222,6 +234,9 @@
 					flipChar = faktur?fakturTable[curChar]:flipChar;
 					flipChar = double?doubleTable[curChar]:flipChar;
           			flipChar = zalgo?zalgoR(curChar):flipChar;
+          			console.log(curChar);
+          			flipChar = bubble?bubbleTextTable[curChar]:flipChar;
+     			    flipChar = bubbleinv?bubbleInvertTextTable[curChar.toUpperCase()]:flipChar;
 					outv[i] = flipChar ? flipChar : curChar;
 				}
 				return outv.join('');
@@ -275,6 +290,8 @@
 				c['faktur'] 			= document.getElementById("faktur").checked;
 				c['double'] 			= document.getElementById("double").checked;
         		c['zalgo'] 				= document.getElementById("zalgo").checked;
+        		c['bubble'] 			= document.getElementById("bubble").checked;
+        		c['bubbleinv'] 			= document.getElementById("bubbleinv").checked;
 				return c;
 			}
 
@@ -512,6 +529,91 @@
 				"8" : "&#x1D7D6",
 				"9" : "&#x1D7D7"
 			}
+
+		var bubbleTextTable = {
+			"a":"\u24D0",
+			"b":"\u24D1",
+			"c":"\u24D2",
+			"d":"\u24D3",
+			"e":"\u24D4",
+			"f":"\u24D5",
+			"g":"\u24D6",
+			"h":"\u24D7",
+			"i":"\u24D8",
+			"j":"\u24D9",
+			"k":"\u24DA",
+			"l":"\u24DB",
+			"m":"\u24DC",
+			"n":"\u24DD",
+			"o":"\u24DE",
+			"p":"\u24DF",
+			"q":"\u24E0",
+			"r":"\u24E1",
+			"s":"\u24E2",
+			"t":"\u24E3",
+			"u":"\u24E4",
+			"v":"\u24E5",
+			"w":"\u24E6",
+			"x":"\u24E7",
+			"y":"\u24E8",
+			"z":"\u24E9",
+			"A":"\u24B6",
+			"B":"\u24B7",
+			"C":"\u24B8",
+			"D":"\u24B9",
+			"E":"\u24BA",
+			"F":"\u24BB",
+			"G":"\u24BC",
+			"H":"\u24BD",
+			"I":"\u24BE",
+			"J":"\u24BF",
+			"K":"\u24C0",
+			"L":"\u24C1",
+			"M":"\u24C2",
+			"N":"\u24C3",
+			"O":"\u24C4",
+			"P":"\u24C5",
+			"Q":"\u24C6",
+			"R":"\u24C7",
+			"S":"\u24C8",
+			"T":"\u24C9",
+			"U":"\u24CA",
+			"V":"\u24CB",
+			"W":"\u24CC",
+			"X":"\u24CD",
+			"Y":"\u24CE",
+			"Z":"\u24CF"		
+		};
+
+
+		var bubbleInvertTextTable = {
+			"A":"&#127312;",
+			"B":"&#127313;",
+			"C":"&#127314;",
+			"D":"&#127315;",
+			"E":"&#127316;",
+			"F":"&#127317;",
+			"G":"&#127318;",
+			"H":"&#127319;",
+			"I":"&#127320;",
+			"J":"&#127321;",
+			"K":"&#127322;",
+			"L":"&#127323;",
+			"M":"&#127324;",
+			"N":"&#127325;",
+			"O":"&#127326;",
+			"P":"&#127327;",
+			"Q":"&#127328;",
+			"R":"&#127329;",
+			"S":"&#127330;",
+			"T":"&#127331;",
+			"U":"&#127332;",
+			"V":"&#127333;",
+			"W":"&#127334;",
+			"X":"&#127335;",
+			"Y":"&#127336;",
+			"Z":"&#127337;"	
+		};
 
 			var boldTable = {
 				"A" : "&#x1D400",
